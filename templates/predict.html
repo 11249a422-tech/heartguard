@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block title %}Heart Disease Risk Assessment – HeartGuard{% endblock %}
+
+{% block content %}
+<div class="container section-container">
+  <!-- Page Header -->
+  <div class="page-header text-center">
+    <div class="badge-tag">Clinical Assessment</div>
+    <h1 class="page-title">Heart Disease Risk Calculator</h1>
+    <p class="page-subtitle">
+      Input the patient's physiological markers and test results below. All 13 parameters are required for full clinical pipeline evaluation.
+    </p>
+
+    <!-- Quick Preset Buttons -->
+    <div class="preset-controls">
+      <span class="preset-label">Quick Demo Presets:</span>
+      <button type="button" class="btn btn-outline btn-sm" id="btnPresetHealthy">
+        <span class="preset-indicator healthy"></span> Load Low-Risk Profile
+      </button>
+      <button type="button" class="btn btn-outline btn-sm" id="btnPresetAtRisk">
+        <span class="preset-indicator at-risk"></span> Load High-Risk Profile
+      </button>
+      <button type="button" class="btn btn-ghost btn-sm" id="btnClearForm">
+        Reset Form
+      </button>
+    </div>
+  </div>
+
+  <!-- Validation Error Alerts -->
+  {% if errors %}
+  <div class="alert alert-danger" role="alert">
+    <div class="alert-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <strong>Please correct the following input issues:</strong>
+    </div>
+    <ul class="alert-list">
+      {% for err in errors %}
+      <li>{{ err }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- Assessment Form -->
+  <form action="{{ url_for('predict') }}" method="POST" class="assessment-form" id="predictForm" novalidate>
+    
+    <!-- Section 1: Demographics & Routine Vitals -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <div class="card-icon">1</div>
+        <div>
+          <h2 class="card-title">Demographics & Routine Vitals</h2>
+          <p class="card-desc">Patient baseline characteristics and resting metabolic indicators</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <!-- Age -->
+        <div class="form-group">
+          <label for="age" class="form-label">
+            Age <span class="unit">(years)</span>
+            <span class="info-tip" title="Patient chronological age in years (18 - 120)">ℹ️</span>
+          </label>
+          <input 
+            type="number" 
+            id="age" 
+            name="age" 
+            class="form-control" 
+            min="18" 
+            max="120" 
+            step="1" 
+            placeholder="e.g. 54" 
+            value="{{ form_data.get('age', '') }}" 
+            required>
+          <span class="field-hint">Range: 18 – 120 years</span>
+        </div>
+
+        <!-- Sex -->
+        <div class="form-group">
+          <label for="sex" class="form-label">
+            Biological Sex
+            <span class="info-tip" title="Patient biological sex at birth">ℹ️</span>
+          </label>
+          <select id="sex" name="sex" class="form-select" required>
+            <option value="" disabled {% if 'sex' not in form_data %}selected{% endif %}>Select biological sex...</option>
+            <option value="1" {% if form_data.get('sex') == '1' or form_data.get('sex') == 1.0 %}selected{% endif %}>Male</option>
+            <option value="0" {% if form_data.get('sex') == '0' or form_data.get('sex') == 0.0 %}selected{% endif %}>Female</option>
+          </select>
+          <span class="field-hint">Used for baseline demographic risk adjustment</span>
+        </div>
+
+        <!-- Resting Blood Pressure -->
+        <div class="form-group">
+          <label for="trestbps" class="form-label">
+            Resting Blood Pressure <span class="unit">(mm Hg)</span>
+            <span class="info-tip" title="Systolic blood pressure measured upon hospital or clinic admission">ℹ️</span>
+          </label>
+          <input 
+            type="number" 
+            id="trestbps" 
+            name="trestbps" 
+            class="form-control" 
+            min="80" 
+            max="240" 
+            step="1" 
+            placeholder="e.g. 130" 
+            value="{{ form_data.get('trestbps', '') }}" 
+            required>
+          <span class="field-hint">Normal &lt; 120 mm Hg, Hypertension &gt; 130 mm Hg</span>
+        </div>
+
+        <!-- Serum Cholesterol -->
+        <div class="form-group">
+          <label for="chol" class="form-label">
+            Serum Cholesterol <span class="unit">(mg/dl)</span>
+            <span class="info-tip" title="Total serum cholesterol measured in fasting state">ℹ️</span>
+          </label>
+          <input 
+            type="number" 
+            id="chol" 
+            name="chol" 
+            class="form-control" 
+            min="100" 
+            max="600" 
+            step="1" 
+            placeholder="e.g. 210" 
+            value="{{ form_data.get('chol', '') }}" 
+            required>
+          <span class="field-hint">Optimal &lt; 200 mg/dl, High &ge; 240 mg/dl</span>
+        </div>
+
+        <!-- Fasting Blood Sugar -->
+        <div class="form-group">
+          <label for="fbs" class="form-label">
+            Fasting Blood Sugar &gt; 120 mg/dl
+            <span class="info-tip" title="Indicator of impaired fasting glucose or diabetes">ℹ️</span>
+          </label>
+          <select id="fbs" name="fbs" class="form-select" required>
+            <option value="" disabled {% if 'fbs' not in form_data %}selected{% endif %}>Select fasting glucose status...</option>
+            <option value="0" {% if form_data.get('fbs') == '0' or form_data.get('fbs') == 0.0 %}selected{% endif %}>No (Fasting Blood Sugar &le; 120 mg/dl)</option>
+            <option value="1" {% if form_data.get('fbs') == '1' or form_data.get('fbs') == 1.0 %}selected{% endif %}>Yes (Fasting Blood Sugar &gt; 120 mg/dl – Diabetic)</option>
+          </select>
+          <span class="field-hint">Indicates diabetic glycemic threshold</span>
+        </div>
+
+        <!-- Chest Pain Type -->
+        <div class="form-group">
+          <label for="cp" class="form-label">
+            Chest Pain Type
+            <span class="info-tip" title="Symptom classification of chest discomfort">ℹ️</span>
+          </label>
+          <select id="cp" name="cp" class="form-select" required>
+            <option value="" disabled {% if 'cp' not in form_data %}selected{% endif %}>Select chest pain presentation...</option>
+            <option value="1" {% if form_data.get('cp') == '1' or form_data.get('cp') == 1.0 %}selected{% endif %}>Typical Angina (Provoked by exertion/stress)</option>
+            <option value="2" {% if form_data.get('cp') == '2' or form_data.get('cp') == 2.0 %}selected{% endif %}>Atypical Angina (Non-classical exertion discomfort)</option>
+            <option value="3" {% if form_data.get('cp') == '3' or form_data.get('cp') == 3.0 %}selected{% endif %}>Non-Anginal Pain (Non-cardiac related discomfort)</option>
+            <option value="4" {% if form_data.get('cp') == '4' or form_data.get('cp') == 4.0 %}selected{% endif %}>Asymptomatic (No pain symptoms / Silent presentation)</option>
+          </select>
+          <span class="field-hint">Note: Asymptomatic often indicates silent ischemia</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: ECG & Cardiac Stress Response -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <div class="card-icon">2</div>
+        <div>
+          <h2 class="card-title">ECG & Stress Physiology</h2>
+          <p class="card-desc">Resting and treadmill exercise electrocardiographic responses</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <!-- Resting ECG -->
+        <div class="form-group">
+          <label for="restecg" class="form-label">
+            Resting Electrocardiogram (ECG)
+            <span class="info-tip" title="Baseline resting 12-lead ECG findings">ℹ️</span>
+          </label>
+          <select id="restecg" name="restecg" class="form-select" required>
+            <option value="" disabled {% if 'restecg' not in form_data %}selected{% endif %}>Select resting ECG reading...</option>
+            <option value="0" {% if form_data.get('restecg') == '0' or form_data.get('restecg') == 0.0 %}selected{% endif %}>0 – Normal baseline trace</option>
+            <option value="1" {% if form_data.get('restecg') == '1' or form_data.get('restecg') == 1.0 %}selected{% endif %}>1 – ST-T Wave Abnormality (T-inversion / ST &gt; 0.05 mV)</option>
+            <option value="2" {% if form_data.get('restecg') == '2' or form_data.get('restecg') == 2.0 %}selected{% endif %}>2 – Left Ventricular Hypertrophy (Estes' criteria)</option>
+          </select>
+          <span class="field-hint">Evaluates ventricular repolarization & hypertrophy</span>
+        </div>
+
+        <!-- Maximum Heart Rate -->
+        <div class="form-group">
+          <label for="thalach" class="form-label">
+            Max Heart Rate Achieved <span class="unit">(bpm)</span>
+            <span class="info-tip" title="Peak heart rate achieved during treadmill exercise tolerance testing">ℹ️</span>
+          </label>
+          <input 
+            type="number" 
+            id="thalach" 
+            name="thalach" 
+            class="form-control" 
+            min="60" 
+            max="220" 
+            step="1" 
+            placeholder="e.g. 155" 
+            value="{{ form_data.get('thalach', '') }}" 
+            required>
+          <span class="field-hint">Range: 60 – 220 beats per minute</span>
+        </div>
+
+        <!-- Exercise Induced Angina -->
+        <div class="form-group">
+          <label for="exang" class="form-label">
+            Exercise-Induced Angina
+            <span class="info-tip" title="Whether chest pain is provoked during treadmill stress">ℹ️</span>
+          </label>
+          <select id="exang" name="exang" class="form-select" required>
+            <option value="" disabled {% if 'exang' not in form_data %}selected{% endif %}>Select exercise angina status...</option>
+            <option value="0" {% if form_data.get('exang') == '0' or form_data.get('exang') == 0.0 %}selected{% endif %}>No (Tolerated exercise without angina)</option>
+            <option value="1" {% if form_data.get('exang') == '1' or form_data.get('exang') == 1.0 %}selected{% endif %}>Yes (Angina induced by exertion)</option>
+          </select>
+          <span class="field-hint">Sign of coronary arterial demand-supply mismatch</span>
+        </div>
+
+        <!-- ST Depression (Oldpeak) -->
+        <div class="form-group">
+          <label for="oldpeak" class="form-label">
+            ST Depression: Oldpeak <span class="unit">(mm)</span>
+            <span class="info-tip" title="ST segment depression induced by exercise relative to resting baseline">ℹ️</span>
+          </label>
+          <input 
+            type="number" 
+            id="oldpeak" 
+            name="oldpeak" 
+            class="form-control" 
+            min="0.0" 
+            max="10.0" 
+            step="0.1" 
+            placeholder="e.g. 1.2" 
+            value="{{ form_data.get('oldpeak', '') }}" 
+            required>
+          <span class="field-hint">Values &gt; 1.0 mm suggest myocardial ischemia</span>
+        </div>
+
+        <!-- Slope of Peak Exercise ST -->
+        <div class="form-group">
+          <label for="slope" class="form-label">
+            Peak Exercise ST Slope
+            <span class="info-tip" title="Geometry of ST segment at peak exercise">ℹ️</span>
+          </label>
+          <select id="slope" name="slope" class="form-select" required>
+            <option value="" disabled {% if 'slope' not in form_data %}selected{% endif %}>Select ST slope geometry...</option>
+            <option value="1" {% if form_data.get('slope') == '1' or form_data.get('slope') == 1.0 %}selected{% endif %}>1 – Upsloping (Ascending recovery – often normal)</option>
+            <option value="2" {% if form_data.get('slope') == '2' or form_data.get('slope') == 2.0 %}selected{% endif %}>2 – Flat (Horizontal – suspected ischemia)</option>
+            <option value="3" {% if form_data.get('slope') == '3' or form_data.get('slope') == 3.0 %}selected{% endif %}>3 – Downsloping (Descending – strong ischemic marker)</option>
+          </select>
+          <span class="field-hint">Flat or downsloping indicates repolarization failure</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Specialized Cardiac Diagnostics -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <div class="card-icon">3</div>
+        <div>
+          <h2 class="card-title">Diagnostic Imaging & Fluoroscopy</h2>
+          <p class="card-desc">Invasive and radionuclide cardiovascular diagnostic parameters</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <!-- Number of Major Vessels (ca) -->
+        <div class="form-group">
+          <label for="ca" class="form-label">
+            Major Coronary Vessels Colored <span class="unit">(ca)</span>
+            <span class="info-tip" title="Number of major coronary arteries (0-3) visualized by fluoroscopy">ℹ️</span>
+          </label>
+          <select id="ca" name="ca" class="form-select" required>
+            <option value="" disabled {% if 'ca' not in form_data %}selected{% endif %}>Select vessel count...</option>
+            <option value="0" {% if form_data.get('ca') == '0' or form_data.get('ca') == 0.0 %}selected{% endif %}>0 – Clean fluoroscopy (No major vessels narrowed)</option>
+            <option value="1" {% if form_data.get('ca') == '1' or form_data.get('ca') == 1.0 %}selected{% endif %}>1 – One vessel identified</option>
+            <option value="2" {% if form_data.get('ca') == '2' or form_data.get('ca') == 2.0 %}selected{% endif %}>2 – Two vessels identified</option>
+            <option value="3" {% if form_data.get('ca') == '3' or form_data.get('ca') == 3.0 %}selected{% endif %}>3 – Three vessels identified (Multivessel disease)</option>
+          </select>
+          <span class="field-hint">Coronary fluoroscopy artery occlusion count (0 to 3)</span>
+        </div>
+
+        <!-- Thalassemia Scintigraphy (thal) -->
+        <div class="form-group">
+          <label for="thal" class="form-label">
+            Thalassemia Perfusion Scintigraphy <span class="unit">(thal)</span>
+            <span class="info-tip" title="Radionuclide myocardial perfusion imaging result">ℹ️</span>
+          </label>
+          <select id="thal" name="thal" class="form-select" required>
+            <option value="" disabled {% if 'thal' not in form_data %}selected{% endif %}>Select myocardial perfusion status...</option>
+            <option value="3" {% if form_data.get('thal') == '3' or form_data.get('thal') == 3.0 %}selected{% endif %}>3 – Normal blood flow (Homogeneous perfusion)</option>
+            <option value="6" {% if form_data.get('thal') == '6' or form_data.get('thal') == 6.0 %}selected{% endif %}>6 – Fixed Defect (Persistent hypoperfusion / Infarct scar)</option>
+            <option value="7" {% if form_data.get('thal') == '7' or form_data.get('thal') == 7.0 %}selected{% endif %}>7 – Reversible Defect (Exertional ischemia returning at rest)</option>
+          </select>
+          <span class="field-hint">Myocardial scintigraphy perfusion result</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Section -->
+    <div class="form-actions-card text-center">
+      <button type="submit" class="btn btn-primary btn-xl" id="btnSubmit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+        <span>Evaluate Cardiovascular Risk</span>
+      </button>
+      <p class="form-security-note">
+        🔒 All calculations are performed in-memory. Zero clinical inputs are stored.
+      </p>
+    </div>
+  </form>
+</div>
+{% endblock %}

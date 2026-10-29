@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}Model & Research Methodology – HeartGuard{% endblock %}
+
+{% block content %}
+<div class="container section-container">
+  
+  <!-- Header -->
+  <div class="page-header text-center">
+    <div class="badge-tag">Research & Methodology</div>
+    <h1 class="page-title">Machine Learning Benchmarks & Architecture</h1>
+    <p class="page-subtitle">
+      HeartGuard compares three clinical machine learning architectures to optimize the Area Under the ROC Curve (ROC-AUC) on the UCI Cleveland Heart Disease dataset.
+    </p>
+  </div>
+
+  <!-- Model Comparison Card -->
+  <div class="section-card mt-4" id="models">
+    <div class="section-card-header">
+      <div>
+        <h2 class="section-card-title">Algorithm Benchmark Comparison</h2>
+        <p class="section-card-subtitle">
+          Evaluated using an 80/20 stratified split (242 training, 61 test samples). All models used identical preprocessing: Median/Mode Imputation, Standard Scaling, and One-Hot Encoding.
+        </p>
+      </div>
+    </div>
+
+    <!-- Chart.js Benchmark Comparison Bar Chart -->
+    <div class="chart-container-box">
+      <canvas id="modelComparisonChart" height="120"></canvas>
+    </div>
+
+    <!-- Metrics Table -->
+    <div class="table-responsive mt-4">
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th>Model Architecture</th>
+            <th>Accuracy</th>
+            <th>Precision</th>
+            <th>Recall</th>
+            <th>F1-Score</th>
+            <th>ROC-AUC</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if metrics and metrics.models %}
+            {% for name, m in metrics.models.items() %}
+            <tr {% if name == metrics.best_model %}class="table-winner-row"{% endif %}>
+              <td>
+                <strong>{{ name }}</strong>
+                {% if name == metrics.best_model %}
+                  <span class="badge-champion">⭐ Selected Champion</span>
+                {% endif %}
+              </td>
+              <td>{{ (m.accuracy * 100) | round(2) }}%</td>
+              <td>{{ (m.precision * 100) | round(2) }}%</td>
+              <td>{{ (m.recall * 100) | round(2) }}%</td>
+              <td>{{ (m.f1 * 100) | round(2) }}%</td>
+              <td><strong>{{ (m.roc_auc * 100) | round(2) }}%</strong></td>
+              <td>
+                {% if name == metrics.best_model %}
+                  <span class="status-tag status-success">Active Pipeline</span>
+                {% else %}
+                  <span class="status-tag status-neutral">Evaluated</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7">No metrics data found. Please run train.py to generate benchmarks.</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Confusion Matrix Section -->
+  {% if metrics and metrics.best_metrics and metrics.best_metrics.confusion_matrix %}
+  <div class="section-card mt-5">
+    <div class="section-card-header">
+      <div>
+        <h2 class="section-card-title">Test Set Confusion Matrix: {{ metrics.best_model }}</h2>
+        <p class="section-card-subtitle">
+          Breakdown of test set predictions (61 patients: 33 negative cases, 28 positive cases).
+        </p>
+      </div>
+    </div>
+
+    <div class="cm-grid">
+      <div class="cm-cell cm-tn">
+        <span class="cm-label">True Negatives (TN)</span>
+        <span class="cm-value">{{ metrics.best_metrics.confusion_matrix[0][0] }}</span>
+        <span class="cm-desc">Correctly predicted No Disease</span>
+      </div>
+      <div class="cm-cell cm-fp">
+        <span class="cm-label">False Positives (FP)</span>
+        <span class="cm-value">{{ metrics.best_metrics.confusion_matrix[0][1] }}</span>
+        <span class="cm-desc">No Disease predicted as Positive</span>
+      </div>
+      <div class="cm-cell cm-fn">
+        <span class="cm-label">False Negatives (FN)</span>
+        <span class="cm-value">{{ metrics.best_metrics.confusion_matrix[1][0] }}</span>
+        <span class="cm-desc">Disease missed by model</span>
+      </div>
+      <div class="cm-cell cm-tp">
+        <span class="cm-label">True Positives (TP)</span>
+        <span class="cm-value">{{ metrics.best_metrics.confusion_matrix[1][1] }}</span>
+        <span class="cm-desc">Correctly detected Disease</span>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Dataset & Clinical Parameters Guide -->
+  <div class="section-card mt-5" id="dataset">
+    <div class="section-card-header">
+      <div>
+        <h2 class="section-card-title">Dataset Specification: UCI Cleveland Heart Disease</h2>
+        <p class="section-card-subtitle">
+          The gold-standard cardiology benchmark collected from the Cleveland Clinic Foundation by Robert Detrano, M.D., Ph.D.
+        </p>
+      </div>
+    </div>
+
+    <div class="info-prose">
+      <p>
+        The Cleveland database contains 303 patient records across 14 measured attributes. The original clinical target measures angiographic coronary artery disease narrowing: <code>0</code> represents &lt; 50% diameter narrowing (absence of significant disease), while values <code>1, 2, 3, 4</code> represent &gt; 50% diameter narrowing (presence of significant disease). In accordance with modern cardiology ML research, the target is binarized into:
+      </p>
+      <div class="formula-box">
+        <code>y = 1 if target &gt; 0 else 0 (Positive: 139 patients, Negative: 164 patients)</code>
+      </div>
+    </div>
+
+    <div class="table-responsive mt-3">
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th>Feature Name</th>
+            <th>Clinical Significance</th>
+            <th>Data Type / Physiological Bounds</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>age</code></td>
+            <td>Patient age in years</td>
+            <td>Continuous (18 – 120 years)</td>
+          </tr>
+          <tr>
+            <td><code>sex</code></td>
+            <td>Biological sex</td>
+            <td>Binary (1 = Male, 0 = Female)</td>
+          </tr>
+          <tr>
+            <td><code>cp</code></td>
+            <td>Chest pain classification</td>
+            <td>Categorical (1 = Typical angina, 2 = Atypical angina, 3 = Non-anginal, 4 = Asymptomatic)</td>
+          </tr>
+          <tr>
+            <td><code>trestbps</code></td>
+            <td>Resting blood pressure on hospital admission</td>
+            <td>Continuous (80 – 240 mm Hg)</td>
+          </tr>
+          <tr>
+            <td><code>chol</code></td>
+            <td>Serum cholesterol</td>
+            <td>Continuous (100 – 600 mg/dl)</td>
+          </tr>
+          <tr>
+            <td><code>fbs</code></td>
+            <td>Fasting blood sugar &gt; 120 mg/dl</td>
+            <td>Binary (1 = Diabetic threshold, 0 = Normal)</td>
+          </tr>
+          <tr>
+            <td><code>restecg</code></td>
+            <td>Resting electrocardiographic results</td>
+            <td>Categorical (0 = Normal, 1 = ST-T abnormality, 2 = LV hypertrophy)</td>
+          </tr>
+          <tr>
+            <td><code>thalach</code></td>
+            <td>Maximum exercise heart rate achieved</td>
+            <td>Continuous (60 – 220 bpm)</td>
+          </tr>
+          <tr>
+            <td><code>exang</code></td>
+            <td>Exercise-induced angina</td>
+            <td>Binary (1 = Yes, 0 = No)</td>
+          </tr>
+          <tr>
+            <td><code>oldpeak</code></td>
+            <td>ST depression induced by exercise vs rest</td>
+            <td>Continuous (0.0 – 10.0 mm)</td>
+          </tr>
+          <tr>
+            <td><code>slope</code></td>
+            <td>Slope of the peak exercise ST segment</td>
+            <td>Categorical (1 = Upsloping, 2 = Flat, 3 = Downsloping)</td>
+          </tr>
+          <tr>
+            <td><code>ca</code></td>
+            <td>Number of major vessels (0-3) colored by fluoroscopy</td>
+            <td>Discrete (0, 1, 2, 3 vessels)</td>
+          </tr>
+          <tr>
+            <td><code>thal</code></td>
+            <td>Thallium scintigraphy perfusion defect</td>
+            <td>Categorical (3 = Normal, 6 = Fixed defect, 7 = Reversible defect)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- REST API Documentation -->
+  <div class="section-card mt-5" id="api">
+    <div class="section-card-header">
+      <div>
+        <h2 class="section-card-title">REST API Reference: <code>/api/predict</code></h2>
+        <p class="section-card-subtitle">
+          Programmatic risk prediction endpoint accepting JSON payloads for integration into EHR systems and clinical workflows.
+        </p>
+      </div>
+    </div>
+
+    <div class="api-docs-grid">
+      <div>
+        <h3>Request Specification</h3>
+        <p><strong>Endpoint:</strong> <code>POST /api/predict</code></p>
+        <p><strong>Content-Type:</strong> <code>application/json</code></p>
+        <div class="code-snippet">
+<pre><code>curl -X POST https://heartguard.onrender.com/api/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "age": 63,
+    "sex": 1,
+    "cp": 1,
+    "trestbps": 145,
+    "chol": 233,
+    "fbs": 1,
+    "restecg": 2,
+    "thalach": 150,
+    "exang": 0,
+    "oldpeak": 2.3,
+    "slope": 3,
+    "ca": 0,
+    "thal": 6
+  }'</code></pre>
+        </div>
+      </div>
+
+      <div>
+        <h3>Response Schema (HTTP 200 OK)</h3>
+        <div class="code-snippet">
+<pre><code>{
+  "status": "success",
+  "prediction": 0,
+  "prediction_label": "No Heart Disease Detected",
+  "risk_probability": 0.2145,
+  "risk_percentage": 21.5,
+  "risk_level": "Low",
+  "risk_tier_description": "Your estimated risk is lower...",
+  "top_factors": [
+    {
+      "code": "ca_0.0",
+      "impact": "decreases_risk",
+      "is_risk": false,
+      "score": 1.5,
+      "text": "Coronary Fluoroscopy (0 major vessels): Clean vessel imaging"
+    }
+  ],
+  "disclaimer": "This is an educational project, not a medical diagnosis..."
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    {% if metrics and metrics.models %}
+      const rawMetrics = {{ metrics.models | tojson }};
+      const modelNames = Object.keys(rawMetrics);
+      const accuracies = modelNames.map(k => +(rawMetrics[k].accuracy * 100).toFixed(2));
+      const precisions = modelNames.map(k => +(rawMetrics[k].precision * 100).toFixed(2));
+      const recalls = modelNames.map(k => +(rawMetrics[k].recall * 100).toFixed(2));
+      const f1Scores = modelNames.map(k => +(rawMetrics[k].f1 * 100).toFixed(2));
+      const rocAucs = modelNames.map(k => +(rawMetrics[k].roc_auc * 100).toFixed(2));
+
+      initModelBenchmarkChart(modelNames, accuracies, precisions, recalls, f1Scores, rocAucs);
+    {% endif %}
+  });
+</script>
+{% endblock %}

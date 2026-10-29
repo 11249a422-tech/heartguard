@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}HeartGuard – Cardiovascular Risk Predictor{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+  <div class="container hero-container">
+    <div class="hero-badge">
+      <span class="pulse-dot"></span> Machine Learning Healthcare Platform
+    </div>
+    <h1 class="hero-title">
+      Predict Heart Disease Risk with <span class="gradient-text">Clinical Precision</span>
+    </h1>
+    <p class="hero-subtitle">
+      HeartGuard evaluates 13 physiological and electrocardiographic biomarkers using an optimized machine learning pipeline trained on the validated UCI Cleveland cohort.
+    </p>
+
+    <div class="hero-actions">
+      <a href="{{ url_for('predict') }}" class="btn btn-primary btn-lg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+        Check My Risk
+      </a>
+      <a href="{{ url_for('about') }}" class="btn btn-secondary btn-lg">
+        Explore Model Metrics
+      </a>
+    </div>
+
+    <!-- Quick Stat Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">96.7%</div>
+        <div class="stat-label">Model ROC-AUC</div>
+        <div class="stat-sub">Validated cross-entropy discrimination</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">88.5%</div>
+        <div class="stat-label">Test Set Accuracy</div>
+        <div class="stat-sub">Benchmarked against RF & XGBoost</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">13</div>
+        <div class="stat-label">Clinical Biomarkers</div>
+        <div class="stat-sub">Vitals, ECG, Labs & Scintigraphy</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">&lt; 50ms</div>
+        <div class="stat-label">Inference Latency</div>
+        <div class="stat-sub">Instant risk scoring & factor breakdown</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="section how-it-works">
+  <div class="container">
+    <div class="section-header text-center">
+      <span class="section-tag">Clinical Workflow</span>
+      <h2 class="section-title">How HeartGuard Evaluates Your Risk</h2>
+      <p class="section-subtitle">A seamless 3-step assessment designed to provide transparent, interpretable cardiovascular insights.</p>
+    </div>
+
+    <div class="workflow-grid">
+      <div class="workflow-card">
+        <div class="step-number">01</div>
+        <div class="workflow-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
+        <h3 class="workflow-heading">Enter Clinical Vitals</h3>
+        <p class="workflow-text">
+          Provide routine health measurements including resting blood pressure, cholesterol, resting ECG findings, exercise tolerance, and fluoroscopy counts.
+        </p>
+      </div>
+
+      <div class="workflow-card">
+        <div class="step-number">02</div>
+        <div class="workflow-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <h3 class="workflow-heading">Machine Learning Inference</h3>
+        <p class="workflow-text">
+          Features are scaled and one-hot encoded through an automated scikit-learn pipeline, evaluating patient metrics against hundreds of historical clinical outcomes.
+        </p>
+      </div>
+
+      <div class="workflow-card">
+        <div class="step-number">03</div>
+        <div class="workflow-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <h3 class="workflow-heading">Interpretable Risk Assessment</h3>
+        <p class="workflow-text">
+          Receive an intuitive risk probability gauge, category badge (Low, Moderate, or High), and an explanation of the top clinical factors driving the outcome.
+        </p>
+      </div>
+    </div>
+
+    <div class="text-center mt-5">
+      <a href="{{ url_for('predict') }}" class="btn btn-primary btn-lg">
+        Start Assessment Now
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Clinical Features Section -->
+<section class="section features-section">
+  <div class="container">
+    <div class="section-header text-center">
+      <span class="section-tag">Key Capabilities</span>
+      <h2 class="section-title">Built for Precision, Privacy & Clarity</h2>
+      <p class="section-subtitle">Every design decision aligns with clinical interpretability and ease of use.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-item">
+        <div class="feature-icon">🛡️</div>
+        <h3>Evidence-Based Model</h3>
+        <p>Benchmarked across Logistic Regression, Random Forest, and XGBoost, selecting the champion algorithm by Area Under the ROC Curve (96.65%).</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">📊</div>
+        <h3>Interactive Gauge Chart</h3>
+        <p>Visual semi-circular risk meter powered by Chart.js for rapid, at-a-glance comprehension of cardiovascular risk strata.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🔍</div>
+        <h3>Top Influencing Factors</h3>
+        <p>Transparent feature attribution exposes precisely which biomarkers elevated or attenuated the overall risk calculation.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">⚡</div>
+        <h3>Automated Input Validation</h3>
+        <p>Physiological boundary checks ensure blood pressure, heart rates, and lab readings reflect real-world clinical bounds.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🔒</div>
+        <h3>Strictly Private & Ephemeral</h3>
+        <p>HeartGuard operates statelessly. No patient data or clinical inputs are persisted to disk or external databases.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🌐</div>
+        <h3>Production Ready REST API</h3>
+        <p>Seamlessly integrate risk scoring into external microservices or electronic health records via <code>/api/predict</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Educational Disclaimer Callout -->
+<section class="disclaimer-section">
+  <div class="container">
+    <div class="disclaimer-box">
+      <div class="disclaimer-icon">⚠️</div>
+      <div class="disclaimer-body">
+        <h3>Educational Project Notice</h3>
+        <p>
+          HeartGuard is developed strictly as an educational and demonstration project. It is not an FDA-cleared diagnostic device and should never replace professional medical judgment, laboratory testing, or in-person cardiology evaluation.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
